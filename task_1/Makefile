@@ -2,6 +2,7 @@ FLAGS = -Wall -Wextra -Werror -o
 EXE = out.exe
 DEF = -D FLOAT_TYPE
 
+
 all:
 	@echo "Build: make build_double/float then make run"
  
