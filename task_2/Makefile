@@ -9,7 +9,7 @@ build_dgemv:
 	g++ $(FLAGS) $(EXE) $(DEF) dgemv.cpp -fopenmp
 
 build_integration:
-	g++ $(FLAGS) $(EXE) $(DEF) ingeration.cpp -fopenmp
+	g++ $(FLAGS) $(EXE) $(DEF) integration.cpp -fopenmp
 
 run:
 	./$(EXE)
