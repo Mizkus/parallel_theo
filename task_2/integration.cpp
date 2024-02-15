@@ -25,7 +25,7 @@ double integrate_omp(double (*func)(double), double a, double b, int n, size_t n
 {
     double h = (b - a) / n;
     double sum = 0.0;
-#pragma omp parallel num_threads(NUM_THREADS)
+#pragma omp parallel num_threads(num_threads)
     {
         int nthreads = omp_get_num_threads();
         int threadid = omp_get_thread_num();
