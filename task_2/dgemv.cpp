@@ -76,6 +76,23 @@ void run_serial(size_t n, size_t m)
     free(c);
 }
 
+void fill_mat(double* arr, size_t m, size_t n){
+
+    #pragma omp parallel num_threads(NUM_THREADS)
+    {
+        int nthreads = omp_get_num_threads();
+        int threadid = omp_get_thread_num();
+        int items_per_thread = m / nthreads;
+        int lb = threadid * items_per_thread;
+        int ub = (threadid == nthreads - 1) ? (m - 1) : (lb + items_per_thread - 1);
+        for (int i = lb; i <= ub; i++)
+        {
+            for (int j = 0; j < n; j++)
+                arr[i * n + j] = i + j;
+        }
+    }
+}
+
 void run_parallel(size_t n, size_t m)
 {
     double *a, *b, *c;
@@ -93,11 +110,7 @@ void run_parallel(size_t n, size_t m)
         exit(1);
     }
 
-    for (int i = 0; i < m; i++)
-    {
-        for (int j = 0; j < n; j++)
-            a[i * n + j] = i + j;
-    }
+    fill_mat(a, m, n);
 
     for (int j = 0; j < n; j++)
         b[j] = j;
