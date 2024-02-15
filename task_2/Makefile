@@ -2,10 +2,14 @@ FLAGS =  -o
 EXE = out.exe
 
 
-all: build
+all: 
+	@echo("build_dgemv or build_integration")
 
-build:
+build_dgemv:
 	g++ $(FLAGS) $(EXE) $(DEF) dgemv.cpp -fopenmp
+
+build_integration:
+	g++ $(FLAGS) $(EXE) $(DEF) ingeration.cpp -fopenmp
 
 run:
 	./$(EXE)

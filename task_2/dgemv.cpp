@@ -128,13 +128,13 @@ void run_parallel(size_t n, size_t m)
 
 int main(int argc, char *argv[])
 {
-    size_t M = MATRIX_SIZE;
-    size_t N = MATRIX_SIZE;
+    size_t M = 0;
+    size_t N = 0;
+
     if (argc > 1)
         M = atoi(argv[1]);
-    if (argc > 2)
-        N = atoi(argv[2]);
-    run_serial(M, N);
+    N = M;
+
     run_parallel(M, N);
     return 0;
 }
