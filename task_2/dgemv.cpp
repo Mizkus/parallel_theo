@@ -3,6 +3,8 @@
 #include <time.h>
 #include <omp.h>
 
+#define MATRIX_SIZE 20000
+#define NUM_THREADS 4
 
 double cpuSecond()
 {
@@ -23,7 +25,7 @@ void matrix_vector_product(double *a, double *b, double *c, int m, int n)
 
 void matrix_vector_product_omp(double *a, double *b, double *c, int m, int n)
 {
-#pragma omp parallel
+#pragma omp parallel num_threads(NUM_THREADS)
     {
         int nthreads = omp_get_num_threads();
         int threadid = omp_get_thread_num();
@@ -113,8 +115,8 @@ void run_parallel(size_t n, size_t m)
 
 int main(int argc, char *argv[])
 {
-    size_t M = 1000;
-    size_t N = 1000;
+    size_t M = MATRIX_SIZE;
+    size_t N = MATRIX_SIZE;
     if (argc > 1)
         M = atoi(argv[1]);
     if (argc > 2)
