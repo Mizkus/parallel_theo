@@ -4,7 +4,7 @@
 #include <omp.h>
 
 #define MATRIX_SIZE 20000
-#define NUM_THREADS 4
+#define NUM_THREADS 40
 
 double cpuSecond()
 {
@@ -93,7 +93,7 @@ void fill_mat(double* arr, size_t m, size_t n){
     }
 }
 
-void run_parallel(size_t n, size_t m)
+double* run_parallel(size_t n, size_t m)
 {
     double *a, *b, *c;
 
@@ -123,18 +123,22 @@ void run_parallel(size_t n, size_t m)
     printf("Elapsed time (parallel): %.6f sec.\n", t);
     free(a);
     free(b);
-    free(c);
+    // free(c);
+    return c;
 }
 
 int main(int argc, char *argv[])
 {
-    size_t M = 0;
-    size_t N = 0;
+    size_t M = MATRIX_SIZE;
+    size_t N = MATRIX_SIZE;
 
     if (argc > 1)
         M = atoi(argv[1]);
     N = M;
-
-    run_parallel(M, N);
+    // printf("%d", M);
+    double* c = run_parallel(M, N);
+    // for (int i = 0; i < M; i++){
+    //     printf("%f ", c[i]);
+    // }
     return 0;
 }

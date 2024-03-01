@@ -6,10 +6,16 @@ all:
 	@echo("build_dgemv or build_integration")
 
 build_dgemv:
-	g++ $(FLAGS) $(EXE) $(DEF) dgemv.cpp -fopenmp
+	g++ $(FLAGS) $(EXE) dgemv.cpp -fopenmp
 
 build_integration:
-	g++ $(FLAGS) $(EXE) $(DEF) integration.cpp -fopenmp
+	g++ $(FLAGS) $(EXE) integration.cpp -fopenmp
+
+build_sle:
+	g++ $(FLAGS) $(EXE) SLE.cpp -fopenmp
+
+build_sle2:
+	g++ $(FLAGS) $(EXE) SLE2.cpp -fopenmp
 
 run:
 	./$(EXE)
