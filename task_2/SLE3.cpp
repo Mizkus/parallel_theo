@@ -4,9 +4,17 @@
 #include <time.h>
 #include <omp.h>
 
+#ifndef NUM_THREADS
 #define NUM_THREADS 40
+#endif
+
+#ifndef CHUNCK_SIZE
 #define CHUNCK_SIZE 20
-#define TYPE dynamic
+#endif
+
+#ifndef TYPE
+#define TYPE static
+#endif
 
 double cpuSecond()
 {
@@ -111,7 +119,8 @@ void simple_iteration(double *matrix, double *x, double *b, int n, double tau, d
 
 int main(int argc, char **argv)
 {
-    int n = 20000;
+    int n = 1000;
+
     
     if (argc > 1)
         n = atoi(argv[1]);
@@ -143,7 +152,7 @@ int main(int argc, char **argv)
     free(x);
     free(b);
 
-    printf("Elapsed time (serial): %.6f sec.\n", t);
+    printf("%.6f\n", t);
 
     return 0;
 }
