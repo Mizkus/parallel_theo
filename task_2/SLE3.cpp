@@ -119,7 +119,7 @@ void simple_iteration(double *matrix, double *x, double *b, int n, double tau, d
 
 int main(int argc, char **argv)
 {
-    int n = 1000;
+    int n = 20000;
 
     
     if (argc > 1)
