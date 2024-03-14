@@ -1,24 +1,22 @@
-FLAGS =  -o
-EXE = out.exe
-
+FLAGS = -fopenmp
 
 all: 
-	@echo("build_dgemv or build_integration")
+	@echo "dgemv.exe, integration.exe, sle.exe, sle2.exe, sle3.exe"
 
-build_dgemv:
-	g++ $(FLAGS) $(EXE) dgemv.cpp -fopenmp
+dgemv.exe:
+	g++ $(FLAGS) dgemv.cpp -o $@
 
-build_integration:
-	g++ $(FLAGS) $(EXE) integration.cpp -fopenmp
+integration.exe:
+	g++ $(FLAGS) integration.cpp -o $@
 
-build_sle:
-	g++ $(FLAGS) $(EXE) SLE.cpp -fopenmp
+sle.exe:
+	g++ $(FLAGS) SLE.cpp -o $@
 
-build_sle2:
-	g++ $(FLAGS) $(EXE) SLE2.cpp -fopenmp
+sle2.exe:
+	g++ $(FLAGS) SLE2.cpp -o $@
 
-run:
-	./$(EXE)
+sle3.exe:
+	g++ $(FLAGS) SLE3.cpp -o $@
 
 clean:
-	rm $(EXE)a
+	rm *.exe
