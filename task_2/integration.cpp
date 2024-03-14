@@ -4,7 +4,8 @@
 #include <omp.h>
 #include <cmath>
 
-#define N_STEPS 20000
+#define N_STEPS 40000000
+#define NUM_THREADS 8
 
 #define A -4.0
 #define B 4.0
@@ -44,9 +45,7 @@ double integrate_omp(double (*func)(double), double a, double b, int n, size_t n
 
 int main(int argc, char *argv[])
 {
-    size_t num_threads = 40;
-    if (argc > 1)
-         num_threads = atoi(argv[1]);
+    size_t num_threads = NUM_THREADS;
 
 
     double t = cpuSecond();
