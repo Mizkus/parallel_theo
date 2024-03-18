@@ -74,10 +74,10 @@ int main(int argc, char **argv)
     std::vector<double> res = multiply_vector_matrix(vec, matrix, num_threads);
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < res.size(); i++)
-    {
-        std::cout << res[i] << " ";
-    }
+    // for (int i = 0; i < res.size(); i++)
+    // {
+    //     std::cout << res[i] << " ";
+    // }
 
     std::cout << (double)(std::chrono::high_resolution_clock::now() - start_time).count() / 1000000;
 }
