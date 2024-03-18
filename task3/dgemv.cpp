@@ -76,5 +76,5 @@ int main(int argc, char **argv)
     auto start_time = std::chrono::high_resolution_clock::now();
     std::vector<double> res = multiply_vector_matrix(vec, matrix, num_threads);
     std::chrono::duration<double, std::milli> execution_time = std::chrono::high_resolution_clock::now() - start_time;
-    std::cout << execution_time.count();
+    std::cout << (double)execution_time.count() / 1000;
 }
