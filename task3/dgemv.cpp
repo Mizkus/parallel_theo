@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
     if (argc > 2)
     {
-        num_threads = atoi(argv[1]);
+        num_threads = atoi(argv[2]);
     }
 
     std::vector<double> vec(N);
