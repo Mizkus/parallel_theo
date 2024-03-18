@@ -63,6 +63,7 @@ int main(int argc, char **argv)
     if (argc > 2)
     {
         num_threads = atoi(argv[2]);
+        
     }
 
     std::vector<double> vec(N);
@@ -71,13 +72,8 @@ int main(int argc, char **argv)
     std::vector<double> matrix(N * N);
     intialize_vector(num_threads, matrix);
 
-    std::vector<double> res = multiply_vector_matrix(vec, matrix, num_threads);
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    // for (int i = 0; i < res.size(); i++)
-    // {
-    //     std::cout << res[i] << " ";
-    // }
-
+    std::vector<double> res = multiply_vector_matrix(vec, matrix, num_threads);
     std::cout << (double)(std::chrono::high_resolution_clock::now() - start_time).count() / 1000000;
 }
