@@ -79,5 +79,5 @@ int main(int argc, char **argv)
         std::cout << res[i] << " ";
     }
 
-    std::cout << (std::chrono::high_resolution_clock::now() - start_time).count();
+    std::cout << (std::chrono::high_resolution_clock::now() - start_time).count() / 1000;
 }
