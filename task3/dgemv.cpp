@@ -34,8 +34,7 @@ std::vector<double> multiply_vector_matrix(const std::vector<double> &vec, const
 
     for (int i = 0; i < num_threads; i++)
     {
-        int start = i * chunck_size, end = (i == num_threads - 1) ? vec.size() : (i + 1) * chunck_size ;
-        std::cout << start << " " << end << std::endl;
+        int start = i * chunck_size, end = (i == num_threads - 1) ? vec_size : (i + 1) * chunck_size ;
         threads.emplace_back([start, end, &vec, &matrix, &result, vec_size]()
                              {
                                  for (int i = start; i < end; ++i)
@@ -71,7 +70,6 @@ int main(int argc, char **argv)
         num_threads = atoi(argv[2]);
     }
 
-    auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<double> vec(N);
     intialize_vector(num_threads, vec);
@@ -80,6 +78,7 @@ int main(int argc, char **argv)
     intialize_vector(num_threads, matrix);
 
     
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     std::vector<double> res = multiply_vector_matrix(vec, matrix, num_threads);
 
