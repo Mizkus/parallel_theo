@@ -56,7 +56,7 @@ private:
                 results.insert({task.first, result});
             }
             lock_res.unlock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            // std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
 
@@ -120,7 +120,7 @@ void run_client(server<T> &s, int N, Func func, std::string file_name) {
         size_t id = s.add_task_thread(task);
         T req = s.request_result(id);
         for (; req == -1; req = s.request_result(id))
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
         file << "ID: " << id << "\nresult: " << req << std::endl;
     }
 }
