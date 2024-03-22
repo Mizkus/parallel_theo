@@ -9,7 +9,7 @@
 #include <fstream>
 
 
-size_t N = 100;
+size_t N = 10000;
 
 template<typename T>
 class Task {
@@ -42,7 +42,6 @@ private:
 
     void server_thread() {
         std::unique_lock<std::mutex> lock_res{mut, std::defer_lock};
-        size_t id_task;
 
         while (server_is_up) {
             lock_res.lock();
@@ -120,7 +119,7 @@ void run_client(server<T> &s, int N, Func func, std::string file_name) {
         size_t id = s.add_task_thread(task);
         T req = s.request_result(id);
         for (; req == -1; req = s.request_result(id))
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         file << "ID: " << id << "\nresult: " << req << std::endl;
     }
 }
