@@ -32,7 +32,7 @@ class parallel_model:
         return c, size
             
     def do_res(self, model, q, out_q):
-        while True:
+        while True: 
             try:
                 frame, ind = q.get(timeout=1)
                 result = model(frame)
