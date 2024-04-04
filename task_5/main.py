@@ -4,9 +4,7 @@ from torchvision.transforms import functional as F
 from ultralytics import YOLO
 import threading
 import numpy as np
-import os
 import time
-from loguru import logger
 
 
 class parallel_model:
@@ -33,8 +31,8 @@ class parallel_model:
             c += 1
         return c, size
             
-    def do_res(self, model, q, out_q, stop_flag):
-        while not stop_flag.is_set():
+    def do_res(self, model, q, out_q):
+        while True:
             try:
                 frame = q.get(timeout=1)
                 result = model(frame)
@@ -44,18 +42,15 @@ class parallel_model:
             
     def get_pose_video(self):
         
-        queues = [Queue() for _ in range(self.num_threads)]
-        out_queues = [Queue() for _ in range(self.num_threads)]
-        stop_flags = [threading.Event() for _ in range(self.num_threads)]
+        queues = np.array([Queue() for _ in range(self.num_threads)])
+        out_queues = np.array([Queue() for _ in range(self.num_threads)])
         
         len, size = self.read_frames(queues, self.num_threads)
         threads = list()
         for i in range(self.num_threads):
 
-            logger.remove()
-            logger.add(lambda _: None)
             model = YOLO(self.model)
-            thread = threading.Thread(target=self.do_res, args=(model, queues[i], out_queues[i], stop_flags[i]))
+            thread = threading.Thread(target=self.do_res, args=(model, queues[i], out_queues[i]))
             threads.append(thread)
     
         for thread in threads:
