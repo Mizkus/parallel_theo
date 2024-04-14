@@ -27,30 +27,30 @@ class parallel_model:
                 break
             if size == None: size = frame.shape
 
-            q[c % num_threads].put((frame, c))
+            q.put((frame, c))
             c += 1
         return c, size
             
-    def do_res(self, model, q, out_q):
+    def do_res(self, model_name, q, out_q):
+        model = YOLO(model_name)
         while True: 
             try:
                 frame, ind = q.get(timeout=1)
-                result = model(frame)
-                out_q.put((result[0].plot(), ind))
+                result = model(frame, device='cpu')[0].plot()
+                out_q.put((result, ind))
             except:
                 break
             
     def get_pose_video(self):
         
-        queues = np.array([Queue() for _ in range(self.num_threads)])
+        queues = Queue()
         out_q = Queue()
         
         len, size = self.read_frames(queues, self.num_threads)
         threads = list()
         for i in range(self.num_threads):
 
-            model = YOLO(self.model)
-            thread = threading.Thread(target=self.do_res, args=(model, queues[i], out_q))
+            thread = threading.Thread(target=self.do_res, args=(self.model, queues, out_q))
             threads.append(thread)
             print(i)
     
@@ -63,7 +63,7 @@ class parallel_model:
         frames = [None] * len
         while True:
             try:
-                frame, ind = out_q.get(timeout=10)
+                frame, ind = out_q.get(timeout=4)
                 frames[ind] = frame
                 print(f'frame {c} of {len}')
                 c += 1
@@ -75,7 +75,14 @@ class parallel_model:
         for frame in frames:
             video_writer.write(frame)
         video_writer.release()
-        print("TIME: ", time.time() - start_time)
+        return time.time() - start_time
 
-a = parallel_model(1, 'video.mp4')
-a.get_pose_video()
+import argparse
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('video_name', type=str)
+    parser.add_argument('num_threads', type=int)
+    parser = vars(parser.parse_args())
+    video_name, num_threads = parser['video_name'], parser['num_threads']
+    a = parallel_model(num_threads, video_name)
+    print("TIME: ", a.get_pose_video())
