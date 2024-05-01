@@ -24,11 +24,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
-void initialize(double *restrict A, double *restrict Anew, int m, int n);
 
-double calcNext(double *restrict A, double *restrict Anew, int m, int n);
-        
-void swap(double *restrict A, double *restrict Anew, int m, int n);
+class Laplace {
+private:
+    double* A, * Anew;
+    int m, n;
 
-void deallocate(double *restrict A, double *restrict Anew);
+public:
+    Laplace(int m, int n);
+    ~Laplace();
+    void initialize();
+    double calcNext();
+    void swap();
+};

@@ -16,40 +16,40 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-#include "laplace2d.h"
+#include <cstdlib>
+#include "laplace2d.hpp"
 #include <nvtx3/nvToolsExt.h>
+#include <chrono>
+#include <iostream>
 
 int main(int argc, char **argv)
 {
-    const int n = 4096;
-    const int m = 4096;
-    const int iter_max = 1000;
+    const int n = 512;
+    const int m = 512;
+    const int iter_max = 1000000;
 
     const double tol = 1.0e-6;
     double error = 1.0;
 
-    double *restrict A = (double *)malloc(sizeof(double) * n * m);
-    double *restrict Anew = (double *)malloc(sizeof(double) * n * m);
+    Laplace a(n, m);
 
     nvtxRangePushA("init");
-    initialize(A, Anew, m, n);
+    a.initialize();
     nvtxRangePop();
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
 
-    double st = omp_get_wtime();
+    auto start = std::chrono::high_resolution_clock::now();
     int iter = 0;
 
     nvtxRangePushA("while");
     while (error > tol && iter < iter_max)
     {
         nvtxRangePushA("calc");
-        error = calcNext(A, Anew, m, n);
+        error = a.calcNext();
         nvtxRangePop();
 
         nvtxRangePushA("swap");
-        swap(A, Anew, m, n);
+        a.swap();
         nvtxRangePop();
         if (iter % 100 == 0)
             printf("%5d, %0.6f\n", iter, error);
@@ -58,11 +58,9 @@ int main(int argc, char **argv)
     }
     nvtxRangePop();
 
-    double runtime = omp_get_wtime() - st;
+    auto runtime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start);
 
-    printf(" total: %f s\n", runtime);
-
-    deallocate(A, Anew);
+    std::cout << "TIME: " << runtime.count() / 1000000.;
 
     return 0;
 }
