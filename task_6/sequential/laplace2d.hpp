@@ -25,15 +25,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <functional>
+
 class Laplace {
 private:
     double* A, * Anew;
     int m, n;
 
 public:
-    Laplace(int m, int n);
+    
+    using InitFunc = std::function<void(double*, double*, int, int)>;
+
+    Laplace(int m, int n, InitFunc initFunc);
     ~Laplace();
-    void initialize();
-    double calcNext();
+    void calcNext();
+    double calcError();
     void swap();
+    void save();
 };

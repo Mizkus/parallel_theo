@@ -24,11 +24,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
-void initialize(double *restrict A, double *restrict Anew, int m, int n);
 
-double calcNext(double *restrict A, double *restrict Anew, int m, int n);
-        
-void swap(double *restrict A, double *restrict Anew, int m, int n);
+#include <functional>
 
-void deallocate(double *restrict A, double *restrict Anew);
+class Laplace {
+private:
+    double* A, * Anew;
+    int m, n;
+
+public:
+    
+    using InitFunc = std::function<void(double*, double*, int, int)>;
+
+    Laplace(int m, int n, InitFunc initFunc);
+    ~Laplace();
+    void calcNext();
+    double calcError();
+    void swap();
+    void save();
+};

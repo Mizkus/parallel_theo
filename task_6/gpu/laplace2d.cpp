@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific langua ge governing permissions and
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
@@ -22,7 +22,7 @@
 #include <iomanip>
 #include "laplace2d.hpp"
 #include <omp.h>
- 
+
 #define OFFSET(x, y, m) (((x) * (m)) + (y))
 
 Laplace::Laplace(int m, int n, InitFunc initFunc) : m(m), n(n)
@@ -34,10 +34,15 @@ Laplace::Laplace(int m, int n, InitFunc initFunc) : m(m), n(n)
     memset(Anew, 0, n * m * sizeof(double));
 
     initFunc(A, Anew, n, m);
+
+#pragma acc enter data copyin(this)
+#pragma acc enter data copyin(A[ : m * n], Anew[ : m * n])
 }
 
 Laplace::~Laplace()
 {
+#pragma acc exit data delete (A[:m * n], Anew[:m * n])
+#pragma acc exit data delete (this)
 
     delete[] A;
     delete[] Anew;
@@ -49,6 +54,7 @@ void Laplace::save()
 
     out << std::fixed << std::setprecision(5);
 
+#pragma acc update host(A[:n * m])
     for (int j = 0; j < n; j++)
     {
         for (int i = 0; i < m; i++)
@@ -61,7 +67,7 @@ void Laplace::save()
 
 void Laplace::calcNext()
 {
-#pragma acc parallel loop
+#pragma acc parallel loop present(A, Anew)
     for (int j = 1; j < n  - 1; j++)
     {
 #pragma acc loop
@@ -75,23 +81,24 @@ void Laplace::calcNext()
 double Laplace::calcError()
 {
     double error = 0.0;
-#pragma acc parallel loop reduction(max : error)
+#pragma acc parallel loop reduction(max : error) present(A, Anew)
     for (int j = 1; j < n - 1; j++)
     {
-#pragma acc loop
+#pragma acc loop 
         for (int i = 1; i < m - 1; i++)
         {
             error = fmax(error, fabs(Anew[OFFSET(j, i, m)] - A[OFFSET(j, i, m)]));
         }
     }
     return error;
-}
+} 
 
 void Laplace::swap()
 {
     double *temp = A;
     A = Anew;
     Anew = temp;
+    #pragma acc data present(A, Anew)
 
     return;
 }

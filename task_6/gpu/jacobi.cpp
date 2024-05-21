@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 { 
     int n = 128, m = 128;
     double tol = 1.0e-6;
-    int iter_max = 1000000;
+    int iter_max = 100;
 
     po::options_description desc("Allowed options");
     desc.add_options()
