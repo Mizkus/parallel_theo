@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,24 @@
 #include <string.h>
 #include <stdio.h>
 #include <cstdlib>
-#include "laplace2d.hpp"
 #include <nvtx3/nvToolsExt.h>
 #include <boost/program_options.hpp>
 
 #include <chrono>
 #include <iostream>
 
-void initFunc(double* A, double* Anew, int n, int m){
+#include <functional>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 
+#define OFFSET(x, y, m) (((x) * (m)) + (y))
+
+void initFunc(double *A, double *Anew, int n, int m)
+{
 
     double corners[4] = {10, 20, 30, 20};
     double step = (corners[1] - corners[0]) / (n - 1);
@@ -39,43 +48,48 @@ void initFunc(double* A, double* Anew, int n, int m){
     for (int i = 1; i < n - 1; i++)
     {
         double val = corners[0] + i * step;
-        A[i] = Anew[i] = val;                       
-        A[n * i] = Anew[n * i] = val;               
+        A[i] = Anew[i] = val;
+        A[n * i] = Anew[n * i] = val;
         A[lastIdx + n * i] = Anew[lastIdx + n * i] = corners[1] + i * step;
-        A[n * lastIdx + i] = Anew[n * lastIdx + i] = corners[3] + i * step; 
+        A[n * lastIdx + i] = Anew[n * lastIdx + i] = corners[3] + i * step;
     }
 }
 
-namespace po = boost::program_options; 
+namespace po = boost::program_options;
 
 int main(int argc, char **argv)
-{ 
+{
     int n = 128, m = 128;
     double tol = 1.0e-6;
     int iter_max = 100;
 
     po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help", "help desciption")
-        ("n", po::value<int>(&n), "int")
-        ("iter", po::value<int>(&iter_max), "int")
-        ("err", po::value<double>(&tol), "double");
+    desc.add_options()("help", "help desciption")("n", po::value<int>(&n), "int")("iter", po::value<int>(&iter_max), "int")("err", po::value<double>(&tol), "double");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
 
-    if (vm.count("help")) {
-            std::cout << desc << "\n";
-            return 0;
+    if (vm.count("help"))
+    {
+        std::cout << desc << "\n";
+        return 0;
     }
+
+    po::notify(vm);
 
     m = n;
 
-
     double error = 1.0;
 
-    Laplace a(n, m, initFunc);
+    double *A = new double[n * m];
+    double *Anew = new double[n * m];
+
+    memset(A, 0, n * m * sizeof(double));
+    memset(Anew, 0, n * m * sizeof(double));
+
+    initFunc(A, Anew, n, m);
+
+#pragma acc enter data copyin(A[ : m * n], Anew[ : m * n])
 
     nvtxRangePushA("init");
     nvtxRangePop();
@@ -88,28 +102,62 @@ int main(int argc, char **argv)
     while (error > tol && iter < iter_max)
     {
         nvtxRangePushA("calc");
-        a.calcNext();
+#pragma acc parallel loop collapse(2) vector vector_length(n) gang num_gangs(n) present(A, Anew)
+        for (int j = 1; j < n - 1; j++)
+        {
+            for (int i = 1; i < m - 1; i++)
+            {
+                Anew[OFFSET(j, i, m)] = (A[OFFSET(j, i + 1, m)] + A[OFFSET(j, i - 1, m)] + A[OFFSET(j - 1, i, m)] + A[OFFSET(j + 1, i, m)]) * 0.25;
+            }
+        }
         nvtxRangePop();
 
-        if (iter % 100 == 0){
-            error = a.calcError();
+        if (iter % 1000 == 0)
+        {
+            double error = 0.0;
+#pragma acc parallel loop collapse(2) reduction(max : error) present(A, Anew)
+            for (int j = 1; j < n - 1; j++)
+            {
+                for (int i = 1; i < m - 1; i++)
+                {
+                    error = fmax(error, fabs(Anew[OFFSET(j, i, m)] - A[OFFSET(j, i, m)]));
+                }
+            }
             printf("%5d, %0.6f\n", iter, error);
         }
 
-
         nvtxRangePushA("swap");
-        a.swap();
+        double *temp = A;
+        A = Anew;
+        Anew = temp;
         nvtxRangePop();
-        
+
         iter++;
     }
     nvtxRangePop();
 
-    a.save();
+    std::ofstream out("out.txt");
+
+    out << std::fixed << std::setprecision(5);
+
+#pragma acc update host(A[ : n * m])
+    for (int j = 0; j < n; j++)
+    {
+        for (int i = 0; i < m; i++)
+        {
+            out << std::left << std::setw(10) << A[OFFSET(j, i, m)] << " ";
+        }
+        out << std::endl;
+    }
 
     auto runtime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start);
 
     std::cout << "TIME: " << runtime.count() / 1000000.;
-    
+
+#pragma acc exit data delete (A[ : m * n], Anew[ : m * n])
+
+    delete[] A;
+    delete[] Anew;
+
     return 0;
 }
