@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     while (error > tol && iter < iter_max)
     {
         nvtxRangePushA("calc");
-#pragma acc parallel loop collapse(2) vector vector_length(n) gang num_gangs(n) present(A, Anew)
+#pragma acc parallel loop collapse(2) present(A, Anew)
         for (int j = 1; j < n - 1; j++)
         {
             for (int i = 1; i < m - 1; i++)
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
         if (iter % 1000 == 0)
         {
-            double error = 0.0;
+            error = 0.0;
 #pragma acc parallel loop collapse(2) reduction(max : error) present(A, Anew)
             for (int j = 1; j < n - 1; j++)
             {
