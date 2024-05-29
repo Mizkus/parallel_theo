@@ -184,62 +184,53 @@ int main(int argc, char const *argv[])
         exit(1);
     }
 
-    cuda_unique_ptr<double> tmp_ptr_old(cuda_new(0), cuda_delete);
-    double *tmp_old = tmp_ptr_old.get();
-    size_t tmp_size_old = 0;
+    cuda_unique_ptr<double> tmp_old_ptr(cuda_new(0), cuda_delete);
+    double *tmp = tmp_old_ptr.get();
+    size_t tmp_size = 0;
 
-    cub::DeviceReduce::Max(tmp_old, tmp_size_old, Anew_device, error_GPU, n * n);
+    cub::DeviceReduce::Max(tmp, tmp_size, Anew_device, error_GPU, n * n);
 
-    size_t tmp_size = tmp_size_old;
     cuda_unique_ptr<double> tmp_ptr(cuda_new(tmp_size), cuda_delete);
-    double *tmp = tmp_ptr.get();
+    tmp = tmp_ptr.get();
 
     dim3 block = dim3(32, 32);
     dim3 grid(ceil(n / block.x), ceil(n / block.y));
-
-    int calc_err = 0;
 
     double error = 1.0;
     int iter = 0;
     auto start = std::chrono::high_resolution_clock::now();
 
+    cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal);
+
+    for (size_t i = 0; i < 100; i++)
+    {
+        Calculate_matrix<<<grid, block, 0, stream>>>(Anew_device, A_device, n);
+
+        double *temp = A_device;
+        A_device = Anew_device;
+        Anew_device = temp;
+    }
+
+    Error_matrix<<<grid, block, 0, stream>>>(Anew_device, A_device, error_device, n);
+
+    cudaStreamEndCapture(stream, graph.get());
+    cudaGraphInstantiate(graph_save.get(), *graph, NULL, NULL, 0);
+
+    std::cout << std::fixed << std::setprecision(6);
+
     while (error > err && iter < iter_max)
     {
-        if (!calc_err)
+        cudaGraphLaunch(*graph_save, stream);
+        cub::DeviceReduce::Max(tmp, tmp_size, error_device, error_GPU, n * n, stream);
+        cudaError_t cudaErr3 = cudaMemcpy(&error, error_GPU, sizeof(double), cudaMemcpyDeviceToHost);
+        if (cudaErr3 != cudaSuccess)
         {
-            cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal);
-
-            for (size_t i = 0; i < 100; i++)
-            {
-                Calculate_matrix<<<grid, block, 0, stream>>>(Anew_device, A_device, n);
-
-                double *temp = A_device;
-                A_device = Anew_device;
-                Anew_device = temp;
-            }
-
-            Error_matrix<<<grid, block, 0, stream>>>(Anew_device, A_device, error_device, n);
-
-            cudaStreamEndCapture(stream, graph.get());
-            cudaGraphInstantiate(graph_save.get(), *graph, NULL, NULL, 0);
-
-            calc_err = 1;
+            std::cerr << "Memory transfering error: " << cudaGetErrorString(cudaErr3) << std::endl;
+            exit(1);
         }
 
-        else
-        {
-            cudaGraphLaunch(*graph_save, stream);
-            cub::DeviceReduce::Max(tmp, tmp_size, error_device, error_GPU, n * n, stream);
-            cudaError_t cudaErr3 = cudaMemcpy(&error, error_GPU, sizeof(double), cudaMemcpyDeviceToHost);
-            if (cudaErr3 != cudaSuccess)
-            {
-                std::cerr << "Memory transfering error: " << cudaGetErrorString(cudaErr3) << std::endl;
-                exit(1);
-            }
-
-            iter += 100;
-            printf("%5d, %0.6f\n", iter, error);
-        }
+        iter += 100;
+        std::cout << iter << " " << error << std::endl;
     }
 
     auto end = std::chrono::high_resolution_clock::now();
